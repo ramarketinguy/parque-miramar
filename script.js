@@ -192,6 +192,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // ── META PIXEL — CONVERSION EVENTS ──────────
+// ── META PIXEL — CONVERSION EVENTS ──────────
 // Helper: dual-fire to browser pixel AND server-side CAPI
 function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -199,118 +200,81 @@ function getCookie(name) {
 }
 
 function trackFBEvent(eventName, params) {
-    // 1) Fire browser pixel
+    console.log(`[FB-TRACK] Event: ${eventName}`, params);
+
+    // 1) Fire browser pixel (if loaded)
     if (typeof fbq === 'function') {
         fbq('track', eventName, params);
+    } else {
+        console.warn('[FB-TRACK] "fbq" not defined. Check adblocker.');
     }
 
-    // 2) Fire server-side CAPI (async, non-blocking)
-    try {
-        const payload = {
-            event_name: eventName,
-            event_time: Math.floor(Date.now() / 1000),
-            event_source_url: window.location.href,
-            action_source: 'website',
-            user_data: {
-                client_user_agent: navigator.userAgent,
-                fbp: getCookie('_fbp') || undefined,
-                fbc: getCookie('_fbc') || undefined,
-            },
-        };
-        if (params) {
-            payload.custom_data = params;
+    // 2) Fire server-side CAPI (async, no-blocking)
+    const payload = {
+        event_name: eventName,
+        event_time: Math.floor(Date.now() / 1000),
+        event_source_url: window.location.href,
+        action_source: 'website',
+        user_data: {
+            client_user_agent: navigator.userAgent,
+            fbp: getCookie('_fbp'),
+            fbc: getCookie('_fbc'),
         }
+    };
+    if (params) payload.custom_data = params;
 
-        fetch('/api/meta-capi', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            keepalive: true, // ensures request completes even on page exit
-        }).catch(() => { }); // silently fail — pixel is the fallback
-    } catch (e) {
-        // CAPI is best-effort; pixel is the primary tracker
-    }
+    fetch('/api/meta-capi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true
+    }).then(res => {
+        if (!res.ok) console.error('[FB-CAPI] Error:', res.status);
+    }).catch(err => console.error('[FB-CAPI] Network Error:', err));
 }
 
-// Track all WhatsApp & CTA links
+// Track WhatsApp & Schedule links
 document.querySelectorAll('a[href*="wa.me"], a.btn-whatsapp, a.btn-primary[href*="wa.me"]').forEach(link => {
     link.addEventListener('click', () => {
         const text = link.textContent.trim().toLowerCase();
-        if (text.includes('agendar')) {
-            trackFBEvent('Schedule', {
-                content_name: 'Agendar Visita — Parque Miramar',
-                content_category: 'Real Estate',
-                value: 380000,
-                currency: 'USD'
-            });
-        } else {
-            trackFBEvent('Contact', {
-                content_name: 'WhatsApp — Parque Miramar',
-                content_category: 'Real Estate',
-                value: 380000,
-                currency: 'USD'
-            });
-        }
-    });
-});
-
-// Track gallery photo request button
-document.querySelectorAll('.gallery-header a.btn-primary').forEach(link => {
-    link.addEventListener('click', () => {
-        trackFBEvent('Lead', {
-            content_name: 'Pedir más fotos — Parque Miramar',
-            content_category: 'Real Estate'
-        });
-    });
-});
-
-// Track floating WhatsApp button
-const waFloat = document.querySelector('.wa-float');
-if (waFloat) {
-    waFloat.addEventListener('click', () => {
-        trackFBEvent('Contact', {
-            content_name: 'WhatsApp Flotante — Parque Miramar',
+        const eventName = text.includes('agendar') ? 'Schedule' : 'Contact';
+        trackFBEvent(eventName, {
+            content_name: eventName === 'Schedule' ? 'Agendar Visita' : 'WhatsApp Contact',
             content_category: 'Real Estate',
             value: 380000,
             currency: 'USD'
         });
     });
-}
-
-// Track nav CTA click
-document.querySelectorAll('.nav-cta').forEach(link => {
-    link.addEventListener('click', () => {
-        trackFBEvent('Lead', {
-            content_name: 'Nav CTA — Agendar Visita',
-            content_category: 'Real Estate'
-        });
-    });
 });
 
-// Track section views (ViewContent when key sections become visible)
+// Track Photo Request
+document.querySelectorAll('.gallery-header a.btn-primary').forEach(link => {
+    link.addEventListener('click', () => trackFBEvent('Lead', { content_name: 'Pedir fotos' }));
+});
+
+// Track Floating WA
+const waFloat = document.querySelector('.wa-float');
+if (waFloat) {
+    waFloat.addEventListener('click', () => trackFBEvent('Contact', { content_name: 'WhatsApp Flotante' }));
+}
+
+// Track Nav CTA
+document.querySelectorAll('.nav-cta').forEach(link => {
+    link.addEventListener('click', () => trackFBEvent('Lead', { content_name: 'Nav Agendar' }));
+});
+
+// PageView is automatic in HTML head.
+// ViewContent for key sections
+const sectionsToTrack = ['contacto', 'galeria'];
 const sectionObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const id = entry.target.id;
-            if (id === 'contacto') {
-                trackFBEvent('ViewContent', {
-                    content_name: 'Sección Contacto — Parque Miramar',
-                    content_category: 'Real Estate',
-                    value: 380000,
-                    currency: 'USD'
-                });
-            } else if (id === 'galeria') {
-                trackFBEvent('ViewContent', {
-                    content_name: 'Sección Galería — Parque Miramar',
-                    content_category: 'Real Estate'
-                });
-            }
+        if (entry.isIntersecting && sectionsToTrack.includes(entry.target.id)) {
+            trackFBEvent('ViewContent', { content_name: `Sección ${entry.target.id}` });
             sectionObserver.unobserve(entry.target);
         }
     });
-}, { threshold: 0.3 });
-
-const contactSection = document.getElementById('contacto');
-const galeriaSection = document.getElementById('galeria');
-if (contactSection) sectionObserver.observe(contactSection);
-if (galeriaSection) sectionObserver.observe(galeriaSection);
+}, { threshold: 0.5 });
+sectionsToTrack.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) sectionObserver.observe(el);
+});

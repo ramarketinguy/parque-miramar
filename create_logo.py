@@ -27,9 +27,10 @@ def process_logo():
     offset = ((max_dim - bg.size[0]) // 2, (max_dim - bg.size[1]) // 2)
     square_bg.paste(bg, offset)
     
-    # Save favicon
+    # Save favicon as ICO (64x64) and PNG (32x32)
     square_bg.resize((64, 64), Image.LANCZOS).save("favicon.ico")
-    print("Created favicon.ico")
+    square_bg.resize((32, 32), Image.LANCZOS).save("favicon.png")
+    print("Created favicon.ico and favicon.png")
 
 if __name__ == "__main__":
     process_logo()
