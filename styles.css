@@ -1516,9 +1516,9 @@ footer {
   }
 
   .tabs {
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    overflow-x: visible;
+    width: 100%;
+    display: flex;
   }
 
   .tabs::-webkit-scrollbar {
@@ -1526,9 +1526,14 @@ footer {
   }
 
   .tab-btn {
-    padding: 1rem 1.5rem;
-    font-size: 0.72rem;
+    padding: 1rem 0.2rem;
+    font-size: 0.68rem;
     white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
   }
 
   footer {
