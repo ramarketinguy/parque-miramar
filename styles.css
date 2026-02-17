@@ -1611,3 +1611,43 @@ footer {
     grid-template-rows: auto;
   }
 }
+
+/* ── VIDEO BACKGROUND (Vimeo Scale Fix) ──────────────── */
+.video-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  background: #000;
+}
+
+.video-background iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 56.25vw;
+  /* Base 16:9 */
+  min-height: 100vh;
+  min-width: 177.77vh;
+  /* Cover Height */
+  /* ZOOM: Base video is 4:3 inside 16:9 frame. 16/9 / 4/3 = 1.33. 
+     We use 1.5 to safely crop black pillars */
+  transform: translate(-50%, -50%) scale(1.5);
+  pointer-events: none;
+}
+
+.hero-bg {
+  z-index: -2;
+}
+
+.hero-overlay {
+  z-index: 0;
+}
+
+.hero-content {
+  z-index: 1;
+}
