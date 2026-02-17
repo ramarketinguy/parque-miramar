@@ -201,20 +201,32 @@ function getCookie(name) {
     return match ? match[2] : null;
 }
 
-// Generate unique ID for deduplication
+// Generate unique ID for deduplication (fallback)
 function generateEventID() {
     return 'evt-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
 }
 
-function trackFBEvent(eventName, params) {
-    const eventID = generateEventID();
+function trackFBEvent(eventName, params, manualID = null) {
+    const eventID = manualID || generateEventID();
     console.log(`[FB-TRACK] Event: ${eventName} | ID: ${eventID}`, params);
 
     // 1) Fire browser pixel (with eventID)
-    if (typeof fbq === 'function') {
-        fbq('track', eventName, params, { eventID: eventID });
+    // ONLY if not manually passed (because manual means Pixel already fired in HTML) OR forced via params
+    // But to keep it simple: we usually want to fire pixel unless specifically told not to.
+    // However, for PageView, we ONLY want to fire CAPI here because Pixel fired in HTML.
+
+    if (manualID) {
+        // If ID is provided manually (like for PageView from head), 
+        // prompt pixel ONLY if it wasn't the initial PageView.
+        // But here we use manualID for the initial PageView CAPI call.
+        // So we skip Browser Pixel.
+        console.log('[FB-TRACK] Skipping Browser Pixel (Assumed verified by HTML)');
     } else {
-        console.warn('[FB-TRACK] "fbq" not defined. Check adblocker.');
+        if (typeof fbq === 'function') {
+            fbq('track', eventName, params, { eventID: eventID });
+        } else {
+            console.warn('[FB-TRACK] "fbq" not defined. Check adblocker.');
+        }
     }
 
     // 2) Fire server-side CAPI (with same eventID)
@@ -242,10 +254,14 @@ function trackFBEvent(eventName, params) {
     }).catch(err => console.error('[FB-CAPI] Network Error:', err));
 }
 
-// Fire Initial PageView (Deduplicated)
-setTimeout(() => {
+// Fire Server-Side PageView (using the ID from HTML)
+if (window.pageViewID) {
+    // Send CAPI event matching the HTML pixel event
+    trackFBEvent('PageView', null, window.pageViewID);
+} else {
+    // Fallback if HTML execution failed (rare)
     trackFBEvent('PageView');
-}, 500);
+}
 
 // Track WhatsApp & Schedule links
 document.querySelectorAll('a[href*="wa.me"], a.btn-whatsapp, a.btn-primary[href*="wa.me"]').forEach(link => {
