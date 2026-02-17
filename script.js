@@ -244,6 +244,16 @@ function trackFBEvent(eventName, params, manualID = null) {
     };
     if (params) payload.custom_data = params;
 
+    // Check for Test Event Code via URL param or Storage
+    const urlParams = new URLSearchParams(window.location.search);
+    const testCode = urlParams.get('test_code') || sessionStorage.getItem('fb_test_code');
+
+    if (testCode) {
+        payload.test_event_code = testCode;
+        sessionStorage.setItem('fb_test_code', testCode); // Persist for session
+        console.log('[FB-CAPI] Test Mode Active:', testCode);
+    }
+
     fetch('/api/meta-capi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -251,6 +261,7 @@ function trackFBEvent(eventName, params, manualID = null) {
         keepalive: true
     }).then(res => {
         if (!res.ok) console.error('[FB-CAPI] Error:', res.status);
+        else if (testCode) console.log('[FB-CAPI] Test Event Sent OK');
     }).catch(err => console.error('[FB-CAPI] Network Error:', err));
 }
 

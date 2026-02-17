@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { event_name, event_time, event_source_url, event_id, user_data, custom_data, action_source } = req.body;
+        const { event_name, event_time, event_source_url, event_id, user_data, custom_data, action_source, test_event_code } = req.body;
 
         // Hash user data for privacy (Meta requires SHA-256 hashing)
         const hashedUserData = {};
@@ -64,10 +64,17 @@ module.exports = async (req, res) => {
             eventData.custom_data = custom_data;
         }
 
-        const payload = JSON.stringify({
+        const payloadObj = {
             data: [eventData],
             access_token: ACCESS_TOKEN,
-        });
+        };
+
+        // Inject Test Code if present
+        if (test_event_code) {
+            payloadObj.test_event_code = test_event_code;
+        }
+
+        const payload = JSON.stringify(payloadObj);
 
         // Send to Meta Conversions API
         const response = await sendToMeta(payload);
