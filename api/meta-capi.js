@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { event_name, event_time, event_source_url, user_data, custom_data, action_source } = req.body;
+        const { event_name, event_time, event_source_url, event_id, user_data, custom_data, action_source } = req.body;
 
         // Hash user data for privacy (Meta requires SHA-256 hashing)
         const hashedUserData = {};
@@ -51,6 +51,7 @@ module.exports = async (req, res) => {
             event_name: event_name || 'PageView',
             event_time: event_time || Math.floor(Date.now() / 1000),
             event_source_url: event_source_url || '',
+            event_id: event_id,
             action_source: action_source || 'website',
             user_data: {
                 ...hashedUserData,

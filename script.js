@@ -193,27 +193,36 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // ── META PIXEL — CONVERSION EVENTS ──────────
 // ── META PIXEL — CONVERSION EVENTS ──────────
+// ── META PIXEL — CONVERSION EVENTS ──────────
 // Helper: dual-fire to browser pixel AND server-side CAPI
+
 function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     return match ? match[2] : null;
 }
 
-function trackFBEvent(eventName, params) {
-    console.log(`[FB-TRACK] Event: ${eventName}`, params);
+// Generate unique ID for deduplication
+function generateEventID() {
+    return 'evt-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+}
 
-    // 1) Fire browser pixel (if loaded)
+function trackFBEvent(eventName, params) {
+    const eventID = generateEventID();
+    console.log(`[FB-TRACK] Event: ${eventName} | ID: ${eventID}`, params);
+
+    // 1) Fire browser pixel (with eventID)
     if (typeof fbq === 'function') {
-        fbq('track', eventName, params);
+        fbq('track', eventName, params, { eventID: eventID });
     } else {
         console.warn('[FB-TRACK] "fbq" not defined. Check adblocker.');
     }
 
-    // 2) Fire server-side CAPI (async, no-blocking)
+    // 2) Fire server-side CAPI (with same eventID)
     const payload = {
         event_name: eventName,
         event_time: Math.floor(Date.now() / 1000),
         event_source_url: window.location.href,
+        event_id: eventID, // DEDUPLICATION KEY
         action_source: 'website',
         user_data: {
             client_user_agent: navigator.userAgent,
@@ -232,6 +241,11 @@ function trackFBEvent(eventName, params) {
         if (!res.ok) console.error('[FB-CAPI] Error:', res.status);
     }).catch(err => console.error('[FB-CAPI] Network Error:', err));
 }
+
+// Fire Initial PageView (Deduplicated)
+setTimeout(() => {
+    trackFBEvent('PageView');
+}, 500);
 
 // Track WhatsApp & Schedule links
 document.querySelectorAll('a[href*="wa.me"], a.btn-whatsapp, a.btn-primary[href*="wa.me"]').forEach(link => {
@@ -263,7 +277,6 @@ document.querySelectorAll('.nav-cta').forEach(link => {
     link.addEventListener('click', () => trackFBEvent('Lead', { content_name: 'Nav Agendar' }));
 });
 
-// PageView is automatic in HTML head.
 // ViewContent for key sections
 const sectionsToTrack = ['contacto', 'galeria'];
 const sectionObserver = new IntersectionObserver((entries) => {
