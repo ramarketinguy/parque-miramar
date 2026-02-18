@@ -1674,51 +1674,52 @@ footer {
     display: block !important;
   }
 
-  /* Desktop Layout: Text Left, Widget Right */
+  /* Desktop Layout: Text Left, Widget Right (Corrected Position) */
   .hero-layout {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
+    /* Align bottom to place video lower */
     justify-content: space-between;
-    gap: 4rem;
+    gap: 2rem;
     width: 100%;
-    max-width: 1280px;
-    /* Constrain width for large screens */
+    max-width: 1350px;
     margin: 0 auto;
-    /* Center layout */
+    padding-top: 8rem;
+    /* Space for Title */
+    padding-bottom: 3rem;
+    /* Space from bottom */
   }
 
   .hero-text {
     flex: 1;
     max-width: 650px;
+    margin-bottom: 2rem;
+    /* Lift text slightly relative to video */
   }
 
-  /* Widget: Vertical Video (Clean & Harmonic) */
+  /* Widget: Vertical Video (Lower Right) */
   .hero-media {
     flex: 0 0 auto;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-end;
+    margin-right: 2rem;
+    /* Right spacing */
   }
 
   .video-widget {
-    width: 260px;
-    /* More harmonic width */
-    height: 462px;
-    /* 9:16 Ratio */
+    width: 250px;
+    height: 444px;
+    /* 9:16 approx */
     background: #000;
     border-radius: 12px;
-    /* Subtle radius */
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-    /* Clean shadow */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.2);
     overflow: hidden;
     position: relative;
-    /* Static: No rotation, no tilt */
   }
 
   .video-widget iframe {
     width: 180%;
-    /* Zoom to fill vertical container */
     height: 100%;
     position: absolute;
     left: 50%;
@@ -1732,7 +1733,9 @@ footer {
 @media (min-width: 900px) {
   .hero-content {
     padding-right: 0;
-    /* Let layout handle spacing */
+    /* Reset alignment to allow layout control */
     justify-content: center;
+    align-items: flex-start;
+    /* Important: Start from top */
   }
 }
