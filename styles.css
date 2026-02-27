@@ -1674,52 +1674,47 @@ footer {
     display: block !important;
   }
 
-  /* Desktop Layout: Text Left, Widget Right (Corrected Position) */
+  /* Desktop Layout: Text Left, Widget Right */
   .hero-layout {
     display: flex;
-    align-items: flex-end;
-    /* Align bottom to place video lower */
+    align-items: center;
     justify-content: space-between;
-    gap: 2rem;
+    gap: 4rem;
     width: 100%;
-    max-width: 1350px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding-top: 8rem;
-    /* Space for Title */
-    padding-bottom: 3rem;
-    /* Space from bottom */
+    padding-top: 5rem;
+    padding-bottom: 2rem;
   }
 
   .hero-text {
     flex: 1;
-    max-width: 650px;
-    margin-bottom: 2rem;
-    /* Lift text slightly relative to video */
+    max-width: 550px;
   }
 
-  /* Widget: Vertical Video (Lower Right) */
+  /* Widget: Vertical Video (Upper Right) */
   .hero-media {
     flex: 0 0 auto;
     display: flex;
     justify-content: flex-end;
-    margin-right: 2rem;
-    /* Right spacing */
+    align-self: flex-start;
+    margin-top: 1rem;
+    margin-right: 0;
   }
 
   .video-widget {
-    width: 250px;
-    height: 444px;
-    /* 9:16 approx */
+    width: 290px;
+    height: 420px;
     background: #000;
-    border-radius: 12px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     overflow: hidden;
     position: relative;
   }
 
   .video-widget iframe {
-    width: 180%;
+    width: 260%;
     height: 100%;
     position: absolute;
     left: 50%;
@@ -1732,10 +1727,9 @@ footer {
 /* Adjust text width on desktop with widget */
 @media (min-width: 900px) {
   .hero-content {
-    padding-right: 0;
-    /* Reset alignment to allow layout control */
+    max-width: 100%;
+    padding: 0 3rem 4rem;
     justify-content: center;
     align-items: flex-start;
-    /* Important: Start from top */
   }
 }
